@@ -111,3 +111,4 @@ ENV/
 .idea/inspectionProfiles/Project_Default.xml
 .idea/workspace.xml
 .idea/image-segmentation-keras.iml
+weights/
