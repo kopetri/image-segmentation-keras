@@ -49,7 +49,7 @@ def getSegmentationArr(path, nClasses, width, height):
     return seg_labels
 
 
-def imageSegmentationGenerator(images_path, segs_path, batch_size, n_classes, input_height, input_width, output_height,
+def imageSegmentationGenerator(images_path, segs_path, batch_size, n_classes, data_format, input_height, input_width, output_height,
                                output_width):
     assert images_path[-1] == '/'
     assert segs_path[-1] == '/'
@@ -61,7 +61,7 @@ def imageSegmentationGenerator(images_path, segs_path, batch_size, n_classes, in
 
     assert len(images) == len(segmentations)
     for im, seg in zip(images, segmentations):
-        assert (im.split('/')[-1].split(".")[0] == seg.split('/')[-1].split(".")[0])
+        assert (im.split('/')[-1].split(".")[0] != seg.split('/')[-1].split(".")[0])
 
     zipped = itertools.cycle(zip(images, segmentations))
 
@@ -69,8 +69,13 @@ def imageSegmentationGenerator(images_path, segs_path, batch_size, n_classes, in
         X = []
         Y = []
         for _ in range(batch_size):
-            im, seg = zipped.next()
-            X.append(getImageArr(im, input_width, input_height))
+            im, seg = next(zipped)
+            X.append(getImageArr(
+                path=im,
+                width=input_width,
+                height=input_height,
+                odering=data_format
+            ))
             Y.append(getSegmentationArr(seg, n_classes, output_width, output_height))
 
         yield np.array(X), np.array(Y)

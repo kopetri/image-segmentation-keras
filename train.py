@@ -20,6 +20,7 @@ parser.add_argument("--load_weights", type=str, default="")
 
 parser.add_argument("--model_name", type=str, default="")
 parser.add_argument("--optimizer_name", type=str, default="adadelta")
+parser.add_argument("--data_format", type=str, default="channels_first")
 
 args = parser.parse_args()
 
@@ -33,6 +34,7 @@ validate = args.validate
 save_weights_path = args.save_weights_path
 epochs = args.epochs
 load_weights = args.load_weights
+data_format = args.data_format
 
 optimizer_name = args.optimizer_name
 model_name = args.model_name
@@ -46,7 +48,7 @@ modelFns = {'vgg_segnet': Models.VGGSegnet.VGGSegnet, 'vgg_unet': Models.VGGUnet
             'vgg_unet2': Models.VGGUnet.VGGUnet2, 'fcn8': Models.FCN8.FCN8, 'fcn32': Models.FCN32.FCN32}
 modelFN = modelFns[model_name]
 
-m = modelFN(n_classes, input_height=input_height, input_width=input_width)
+m = modelFN(n_classes, input_height=input_height, input_width=input_width, data_format=data_format)
 m.compile(loss='categorical_crossentropy',
           optimizer=optimizer_name,
           metrics=['accuracy'])
@@ -59,11 +61,11 @@ print("Model output shape", m.output_shape)
 output_height = m.outputHeight
 output_width = m.outputWidth
 
-G = LoadBatches.imageSegmentationGenerator(train_images_path, train_segs_path, train_batch_size, n_classes,
+G = LoadBatches.imageSegmentationGenerator(train_images_path, train_segs_path, train_batch_size, n_classes, data_format,
                                            input_height, input_width, output_height, output_width)
 
 if validate:
-    G2 = LoadBatches.imageSegmentationGenerator(val_images_path, val_segs_path, val_batch_size, n_classes, input_height,
+    G2 = LoadBatches.imageSegmentationGenerator(val_images_path, val_segs_path, val_batch_size, n_classes, data_format, input_height,
                                                 input_width, output_height, output_width)
 
 if not validate:
