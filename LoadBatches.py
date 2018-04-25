@@ -32,10 +32,38 @@ def getImageArr(path, width, height, imgNorm="sub_mean", odering='channels_first
         return img
 
 
-def getSegmentationArr(path, nClasses, width, height):
+def round_list(list, min, max, thresh):
+    result = []
+    for val in list:
+        if val <= thresh:
+            result.append(min)
+        else:
+            result.append(max)
+    return result
+
+
+def preprocess_img(img):
+    height, width, channels = img.shape
+    img_c = img.copy()
+    for x in range(0, width):
+        for y in range(0, height):
+            channels_xy = img[y, x]
+            if all(channels_xy == [255, 255, 255]) or all(channels_xy == [254, 254, 254]):
+                img_c[y, x] = [1, 1, 1]
+
+            elif all(channels_xy == [0, 0, 0]) or all(channels_xy == [1, 1, 1]):
+                img_c[y, x] = [0, 0, 0]
+            else:
+                print(channels_xy)
+    return img_c
+
+
+def getSegmentationArr(path, nClasses, width, height, preprocess=False):
     seg_labels = np.zeros((height, width, nClasses))
     try:
         img = cv2.imread(path, 1)
+        if preprocess:
+            img = preprocess_img(img)
         img = cv2.resize(img, (width, height))
         img = img[:, :, 0]
 
@@ -49,8 +77,9 @@ def getSegmentationArr(path, nClasses, width, height):
     return seg_labels
 
 
-def imageSegmentationGenerator(images_path, segs_path, batch_size, n_classes, data_format, input_height, input_width, output_height,
-                               output_width):
+def imageSegmentationGenerator(images_path, segs_path, batch_size, n_classes, data_format, input_height, input_width,
+                               output_height,
+                               output_width, preprocess_annotations=False):
     assert images_path[-1] == '/'
     assert segs_path[-1] == '/'
 
@@ -76,7 +105,7 @@ def imageSegmentationGenerator(images_path, segs_path, batch_size, n_classes, da
                 height=input_height,
                 odering=data_format
             ))
-            Y.append(getSegmentationArr(seg, n_classes, output_width, output_height))
+            Y.append(getSegmentationArr(seg, n_classes, output_width, output_height, preprocess_annotations))
 
         yield np.array(X), np.array(Y)
 

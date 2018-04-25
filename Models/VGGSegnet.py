@@ -52,17 +52,20 @@ def VGG(input_height=416, input_width=608, data_format="channels_first"):
     x = Dense(4096, activation='relu', name='fc2')(x)
     x = Dense(1000, activation='softmax', name='predictions')(x)
 
-    return f1, f2, f3, f4, f5, img_input, Model(img_input, x)
+    vgg = Model(img_input, x)
 
-
-def VGGSegnet(n_classes, input_height=416, input_width=608, vgg_level=3, data_format="channels_first"):
-    f1, f2, f3, f4, f5, img_input, vgg = VGG(input_height=input_height, input_width=input_width, data_format=data_format)
     if data_format == 'channels_first':
         vgg.load_weights(th_weights)
     elif data_format == 'channels_last':
         vgg.load_weights(tf_weights)
     else:
         assert data_format == 'channels_first' or data_format == 'channels_last'
+
+    return f1, f2, f3, f4, f5, img_input, vgg
+
+
+def VGGSegnet(n_classes, input_height=224, input_width=224, vgg_level=3, data_format="channels_first"):
+    f1, f2, f3, f4, f5, img_input, vgg = VGG(input_height=input_height, input_width=input_width, data_format=data_format)
 
     levels = [f1, f2, f3, f4, f5]
 
